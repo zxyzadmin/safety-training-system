@@ -5,21 +5,46 @@
       <p>管理和查看所有安全培训资料</p>
     </div>
 
+    <!-- 批量操作栏 -->
+    <BatchActions
+      :selected-items="selectedTrainings"
+      :total-count="paginatedMaterials.length"
+      :status-actions="statusActions"
+      @select-all="handleSelectAll"
+      @clear-selection="clearSelection"
+      @delete="handleBatchDelete"
+      @export="handleBatchExport"
+      @status-change="handleBatchStatusChange"
+    />
+
     <!-- 搜索和筛选 -->
     <div class="search-section">
       <div class="search-bar">
-        <el-input
-          v-model="searchForm.keyword"
-          placeholder="搜索培训资料..."
-          :prefix-icon="Search"
-          clearable
-          @input="handleSearch"
-          class="search-input"
-        />
-        <el-button type="primary" @click="$router.push('/training/upload')">
-          <el-icon><Plus /></el-icon>
-          上传资料
-        </el-button>
+        <SmartTooltip
+          content="支持按标题、描述搜索"
+          shortcut="Ctrl+F"
+          help="输入关键词快速查找资料"
+        >
+          <el-input
+            ref="searchInput"
+            v-model="searchForm.keyword"
+            placeholder="搜索培训资料..."
+            :prefix-icon="Search"
+            clearable
+            @input="handleSearchAction"
+            class="search-input"
+          />
+        </SmartTooltip>
+        
+        <SmartTooltip
+          content="上传新的培训资料"
+          shortcut="Ctrl+N"
+        >
+          <el-button type="primary" @click="handleCreate">
+            <el-icon><Plus /></el-icon>
+            上传资料
+          </el-button>
+        </SmartTooltip>
       </div>
 
       <div class="filters">
@@ -27,7 +52,7 @@
           v-model="searchForm.department"
           placeholder="部门"
           clearable
-          @change="handleSearch"
+          @change="handleSearchAction"
         >
           <el-option label="全部部门" value="" />
           <el-option label="安全科" value="安全科" />
@@ -39,7 +64,7 @@
           v-model="searchForm.status"
           placeholder="状态"
           clearable
-          @change="handleSearch"
+          @change="handleSearchAction"
         >
           <el-option label="全部状态" value="" />
           <el-option label="草稿" value="draft" />
@@ -54,7 +79,7 @@
           range-separator="至"
           start-placeholder="开始日期"
           end-placeholder="结束日期"
-          @change="handleSearch"
+          @change="handleSearchAction"
         />
       </div>
     </div>
@@ -64,9 +89,16 @@
       <div
         v-for="material in paginatedMaterials"
         :key="material.id"
-        class="material-card"
+        :class="['material-card', { 'selected': isSelected(material) }]"
         @click="viewMaterial(material)"
       >
+        <!-- 选择框 -->
+        <div class="card-selector" @click.stop="toggleSelection(material)">
+          <el-checkbox 
+            :model-value="isSelected(material)"
+            @change="toggleSelection(material)"
+          />
+        </div>
         <div class="card-header">
           <h3>{{ material.title }}</h3>
           <el-tag
@@ -172,14 +204,22 @@ import {
   Clock,
   Calendar,
   View,
-  Download
+  Download,
+  Edit,
+  Delete
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useShortcuts, commonShortcuts } from '@/utils/shortcuts'
+import SmartTooltip from '@/components/Common/SmartTooltip.vue'
+import BatchActions from '@/components/Common/BatchActions.vue'
 import { useAuthStore } from '@/store/auth'
 import type { TrainingMaterial, SearchFilters, PaginationParams } from '@/types/common'
 
 const router = useRouter()
 const authStore = useAuthStore()
+
+// 搜索输入框引用
+const searchInput = ref()
 
 // 搜索表单
 const searchForm = ref<SearchFilters>({
@@ -194,6 +234,17 @@ const pagination = ref<PaginationParams>({
   page: 1,
   pageSize: 12
 })
+
+// 批量操作相关
+const selectedTrainings = ref<TrainingMaterial[]>([])
+
+// 状态操作选项
+const statusActions = ref([
+  { label: '设为草稿', value: 'draft', icon: Edit },
+  { label: '提交审批', value: 'pending', icon: Clock },
+  { label: '通过审批', value: 'approved', icon: View },
+  { label: '拒绝审批', value: 'rejected', icon: Delete }
+])
 
 // 模拟培训资料数据
 const materials = ref<TrainingMaterial[]>([
@@ -323,10 +374,7 @@ const formatDate = (dateStr: string) => {
   return new Date(dateStr).toLocaleDateString('zh-CN')
 }
 
-// 搜索处理
-const handleSearch = () => {
-  pagination.value.page = 1
-}
+// 搜索处理（原有函数保留，新的handleSearch在下面重新定义）
 
 // 分页处理
 const handlePageChange = (page: number) => {
@@ -368,6 +416,75 @@ const canEdit = (material: TrainingMaterial) => {
 const canApprove = (material: TrainingMaterial) => {
   return authStore.isAdmin && material.status === 'pending'
 }
+
+// 选择相关函数
+const isSelected = (material: TrainingMaterial) => {
+  return selectedTrainings.value.some(item => item.id === material.id)
+}
+
+const toggleSelection = (material: TrainingMaterial) => {
+  const index = selectedTrainings.value.findIndex(item => item.id === material.id)
+  if (index > -1) {
+    selectedTrainings.value.splice(index, 1)
+  } else {
+    selectedTrainings.value.push(material)
+  }
+}
+
+// 快捷键处理函数
+const handleCreate = () => {
+  router.push('/training/upload')
+}
+
+const handleSearchAction = () => {
+  pagination.value.page = 1
+}
+
+const focusSearch = () => {
+  searchInput.value?.focus()
+}
+
+const handleRefresh = () => {
+  // TODO: 重新加载数据
+  ElMessage.success('数据已刷新')
+}
+
+// 批量操作处理函数
+const handleSelectAll = (checked: boolean) => {
+  if (checked) {
+    selectedTrainings.value = [...paginatedMaterials.value]
+  } else {
+    selectedTrainings.value = []
+  }
+}
+
+const clearSelection = () => {
+  selectedTrainings.value = []
+}
+
+const handleBatchDelete = (items: TrainingMaterial[]) => {
+  ElMessage.success(`已删除 ${items.length} 个项目`)
+  selectedTrainings.value = []
+  // TODO: 实现实际删除逻辑
+}
+
+const handleBatchExport = (items: TrainingMaterial[]) => {
+  ElMessage.success(`正在导出 ${items.length} 个项目...`)
+  // TODO: 实现导出逻辑
+}
+
+const handleBatchStatusChange = (status: string, items: TrainingMaterial[]) => {
+  ElMessage.success(`已将 ${items.length} 个项目状态设为: ${getStatusText(status)}`)
+  selectedTrainings.value = []
+  // TODO: 实现状态更新逻辑
+}
+
+// 注册快捷键
+useShortcuts([
+  commonShortcuts.create(handleCreate),
+  commonShortcuts.search(focusSearch),
+  commonShortcuts.refresh(handleRefresh)
+])
 
 onMounted(() => {
   // 初始化数据
@@ -431,14 +548,43 @@ onMounted(() => {
   background: var(--bg-primary);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  transition: all var(--transition-normal);
+  border: 2px solid transparent;
+  transition: all var(--transition-normal) var(--ease-out-quart);
   cursor: pointer;
   overflow: hidden;
+  position: relative;
 }
 
 .material-card:hover {
   transform: translateY(-4px);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-elevated);
+  border-color: var(--primary-light);
+}
+
+.material-card.selected {
+  border-color: var(--primary-color);
+  background: var(--selection-bg);
+  box-shadow: var(--shadow-focus);
+}
+
+.card-selector {
+  position: absolute;
+  top: var(--spacing-md);
+  right: var(--spacing-md);
+  z-index: 2;
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs);
+  box-shadow: var(--shadow-sm);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all var(--transition-fast) var(--ease-out-quart);
+}
+
+.material-card:hover .card-selector,
+.material-card.selected .card-selector {
+  opacity: 1;
+  transform: scale(1);
 }
 
 .card-header {

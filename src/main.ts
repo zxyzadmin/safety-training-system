@@ -4,8 +4,10 @@ import router from './router'
 import App from './App.vue'
 
 // 全局样式
-import './styles/main.css'
 import './styles/variables.css'
+import './styles/animations.css'
+import './styles/main.css'
+import './styles/mobile.css'
 
 // Element Plus 样式
 import 'element-plus/dist/index.css'

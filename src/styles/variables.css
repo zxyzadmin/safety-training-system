@@ -74,6 +74,42 @@
   --transition-normal: 0.3s ease;
   --transition-slow: 0.5s ease;
   
+  /* 渐变色系 */
+  --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  --gradient-success: linear-gradient(135deg, var(--success-color) 0%, #2e7d32 100%);
+  --gradient-warning: linear-gradient(135deg, var(--warning-color) 0%, var(--accent-dark) 100%);
+  --gradient-danger: linear-gradient(135deg, var(--danger-color) 0%, #c62828 100%);
+  --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+  
+  /* 状态色扩展 */
+  --pending-color: #ff9800;
+  --processing-color: #2196f3;
+  --completed-color: #4caf50;
+  --archived-color: #9e9e9e;
+  --draft-color: #607d8b;
+  
+  /* 交互状态色 */
+  --hover-overlay: rgba(0, 0, 0, 0.04);
+  --active-overlay: rgba(0, 0, 0, 0.08);
+  --focus-ring: rgba(30, 136, 229, 0.2);
+  --selection-bg: rgba(30, 136, 229, 0.1);
+  
+  /* 图表专用色彩 */
+  --chart-blue: #1e88e5;
+  --chart-green: #43a047;
+  --chart-orange: #fb8c00;
+  --chart-red: #e53935;
+  --chart-purple: #8e24aa;
+  --chart-teal: #00acc1;
+  --chart-pink: #d81b60;
+  --chart-indigo: #3949ab;
+  
+  /* 高级阴影 */
+  --shadow-inset: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-focus: 0 0 0 3px var(--focus-ring);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.12);
+  --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.15);
+  
   /* Z轴层级 */
   --z-dropdown: 1000;
   --z-sticky: 1020;
@@ -88,10 +124,26 @@
   --sidebar-width: 260px;
   --sidebar-collapsed-width: 64px;
   --container-max-width: 1200px;
+  
+  /* 动画缓动函数 */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* 深色主题变量 */
 html.dark {
+  --primary-lighter: rgba(30, 136, 229, 0.1);
+  
+  /* 深色模式渐变 */
+  --gradient-primary: linear-gradient(135deg, var(--primary-color) 0%, #1565c0 100%);
+  --gradient-card: linear-gradient(145deg, rgba(255,255,255,0.02) 0%, rgba(255,255,255,0.01) 100%);
+  
+  /* 深色模式交互色 */
+  --hover-overlay: rgba(255, 255, 255, 0.04);
+  --active-overlay: rgba(255, 255, 255, 0.08);
+  --selection-bg: rgba(30, 136, 229, 0.15);
   --text-primary: #ffffff;
   --text-secondary: #b3b3b3;
   --text-disabled: #666666;

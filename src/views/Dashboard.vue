@@ -1,7 +1,7 @@
 <template>
-  <div class="dashboard">
+  <div class="dashboard fade-in">
     <!-- 欢迎横幅 -->
-    <div class="welcome-banner">
+    <div class="welcome-banner slide-up">
       <div class="banner-content">
         <div class="welcome-text">
           <h1>欢迎回来，{{ authStore.currentUser?.name }}</h1>
@@ -10,13 +10,19 @@
         <div class="weather-info">
           <el-icon><Sunny /></el-icon>
           <span>22°C 晴</span>
+          <!-- 新图标展示 -->
+          <div class="header-actions">
+            <NotificationIcon :badge="true" :badge-count="3" @click="handleNotificationClick" />
+            <SearchIcon @click="handleSearchClick" />
+            <SettingsIcon @click="handleSettingsClick" />
+          </div>
         </div>
       </div>
     </div>
 
     <!-- 统计卡片 -->
     <div class="stats-grid">
-      <div class="stat-card" v-for="stat in stats" :key="stat.title">
+      <div class="stat-card hover-lift stagger-animation" v-for="stat in stats" :key="stat.title">
         <div class="stat-content">
           <div class="stat-info">
             <h3>{{ stat.value }}</h3>
@@ -41,9 +47,10 @@
       <!-- 左侧：快速操作和最近活动 -->
       <div class="left-section">
         <!-- 快速操作 -->
-        <div class="section-card">
+        <div class="section-card slide-in-left">
           <div class="section-header">
             <h2>快速操作</h2>
+            <RefreshIcon @refresh="refreshQuickActions" />
           </div>
           <div class="quick-actions">
             <div 
@@ -64,12 +71,15 @@
         </div>
 
         <!-- 最近活动 -->
-        <div class="section-card">
+        <div class="section-card slide-in-right">
           <div class="section-header">
             <h2>最近活动</h2>
-            <el-button type="text" @click="$router.push('/personal')">
-              查看全部
-            </el-button>
+            <div class="header-actions">
+              <DownloadIcon @click="exportActivities" />
+              <el-button type="text" @click="$router.push('/personal')">
+                查看全部
+              </el-button>
+            </div>
           </div>
           <div class="activity-list">
             <div 
@@ -179,6 +189,11 @@ import {
   User,
   TrendCharts
 } from '@element-plus/icons-vue'
+import NotificationIcon from '@/components/Icons/NotificationIcon.vue'
+import SearchIcon from '@/components/Icons/SearchIcon.vue'
+import SettingsIcon from '@/components/Icons/SettingsIcon.vue'
+import DownloadIcon from '@/components/Icons/DownloadIcon.vue'
+import RefreshIcon from '@/components/Icons/RefreshIcon.vue'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { LineChart, BarChart } from 'echarts/charts'
@@ -400,6 +415,32 @@ const formatTime = (timeStr: string) => {
   })
 }
 
+// 新图标处理函数
+const handleNotificationClick = () => {
+  console.log('通知点击')
+  // TODO: 显示通知列表
+}
+
+const handleSearchClick = () => {
+  console.log('搜索点击')
+  // TODO: 打开搜索界面
+}
+
+const handleSettingsClick = () => {
+  console.log('设置点击')
+  router.push('/settings')
+}
+
+const refreshQuickActions = () => {
+  console.log('刷新快速操作')
+  // TODO: 重新加载快速操作数据
+}
+
+const exportActivities = () => {
+  console.log('导出活动数据')
+  // TODO: 导出最近活动数据
+}
+
 onMounted(() => {
   // 初始化数据
   console.log('Dashboard mounted')
@@ -414,17 +455,32 @@ onMounted(() => {
 }
 
 .welcome-banner {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  background: var(--gradient-primary);
   color: white;
   padding: var(--spacing-2xl);
   border-radius: var(--radius-lg);
   margin-bottom: var(--spacing-xl);
+  position: relative;
+  overflow: hidden;
+}
+
+.welcome-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--gradient-card);
+  opacity: 0.1;
 }
 
 .banner-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .welcome-text h1 {
@@ -441,8 +497,15 @@ onMounted(() => {
 .weather-info {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
   font-size: var(--font-lg);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-left: var(--spacing-lg);
 }
 
 .stats-grid {
@@ -457,12 +520,31 @@ onMounted(() => {
   border-radius: var(--radius-lg);
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-sm);
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  border: 1px solid var(--border-light);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--transition-normal) var(--ease-out-quart);
+}
+
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--gradient-primary);
+  transform: scaleX(0);
+  transition: transform var(--transition-normal) var(--ease-out-quart);
 }
 
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-md);
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-elevated);
+}
+
+.stat-card:hover::before {
+  transform: scaleX(1);
 }
 
 .stat-content {
@@ -493,6 +575,24 @@ onMounted(() => {
   justify-content: center;
   color: white;
   font-size: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-icon::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.2) 100%);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.stat-card:hover .stat-icon::before {
+  opacity: 1;
 }
 
 .stat-trend {
@@ -527,6 +627,13 @@ onMounted(() => {
   padding: var(--spacing-lg);
   box-shadow: var(--shadow-sm);
   margin-bottom: var(--spacing-lg);
+  border: 1px solid var(--border-light);
+  transition: all var(--transition-normal) var(--ease-out-quart);
+}
+
+.section-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-light);
 }
 
 .section-header {
@@ -557,11 +664,31 @@ onMounted(() => {
   padding: var(--spacing-md);
   border-radius: var(--radius-md);
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  border: 1px solid transparent;
+  transition: all var(--transition-fast) var(--ease-out-quart);
+  position: relative;
+  overflow: hidden;
+}
+
+.action-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--gradient-card);
+  transition: left var(--transition-normal) var(--ease-out-quart);
 }
 
 .action-item:hover {
-  background-color: var(--bg-secondary);
+  background-color: var(--selection-bg);
+  border-color: var(--primary-light);
+  transform: translateX(4px);
+}
+
+.action-item:hover::before {
+  left: 0;
 }
 
 .action-icon {
@@ -694,6 +821,12 @@ onMounted(() => {
   margin-top: var(--spacing-lg);
 }
 
+/* 新增样式 */
+.stagger-animation:nth-child(1) { animation-delay: 0s; }
+.stagger-animation:nth-child(2) { animation-delay: 0.1s; }
+.stagger-animation:nth-child(3) { animation-delay: 0.2s; }
+.stagger-animation:nth-child(4) { animation-delay: 0.3s; }
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .main-sections {
@@ -706,8 +839,21 @@ onMounted(() => {
     gap: var(--spacing-md);
   }
   
+  .weather-info {
+    flex-direction: column;
+  }
+  
+  .header-actions {
+    margin-left: 0;
+    margin-top: var(--spacing-sm);
+  }
+  
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .stat-card:hover {
+    transform: none;
   }
 }
 </style>

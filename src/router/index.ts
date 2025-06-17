@@ -59,6 +59,18 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '上传标准文件' }
       },
       {
+        path: '/standards/:id',
+        name: 'StandardsDetail',
+        component: () => import('@/views/Standards/StandardsDetail.vue'),
+        meta: { title: '标准详情' }
+      },
+      {
+        path: '/standards/:id/version',
+        name: 'StandardsVersion',
+        component: () => import('@/views/Standards/StandardsVersion.vue'),
+        meta: { title: '版本管理' }
+      },
+      {
         path: '/statistics',
         name: 'Statistics',
         component: () => import('@/views/Statistics/StatisticsAnalysis.vue'),
