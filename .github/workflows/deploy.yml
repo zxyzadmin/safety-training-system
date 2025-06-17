@@ -32,10 +32,3 @@ jobs:
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         publish_dir: ./dist
-        cname: safety-training-system.github.io
-
-    - name: Deploy standalone HTML
-      if: github.ref == 'refs/heads/main'
-      run: |
-        mkdir -p ./dist/standalone
-        cp ./standalone.html ./dist/standalone/index.html
