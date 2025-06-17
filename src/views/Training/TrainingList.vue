@@ -36,15 +36,50 @@
           />
         </SmartTooltip>
         
-        <SmartTooltip
-          content="上传新的培训资料"
-          shortcut="Ctrl+N"
-        >
-          <el-button type="primary" @click="handleCreate">
-            <el-icon><Plus /></el-icon>
-            上传资料
+        <el-button-group>
+          <SmartTooltip
+            content="上传新的培训资料"
+            shortcut="Ctrl+N"
+          >
+            <el-button type="primary" @click="handleCreate">
+              <el-icon><Plus /></el-icon>
+              上传资料
+            </el-button>
+          </SmartTooltip>
+          
+          <SmartTooltip content="刷新数据">
+            <el-button @click="handleRefresh">
+              <el-icon><RefreshRight /></el-icon>
+            </el-button>
+          </SmartTooltip>
+        </el-button-group>
+
+        <el-dropdown @command="handleDataAction" trigger="click">
+          <el-button>
+            数据管理
+            <el-icon class="el-icon--right"><ArrowDown /></el-icon>
           </el-button>
-        </SmartTooltip>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="import">
+                <el-icon><Upload /></el-icon>
+                导入数据
+              </el-dropdown-item>
+              <el-dropdown-item command="export-json">
+                <el-icon><Download /></el-icon>
+                导出JSON
+              </el-dropdown-item>
+              <el-dropdown-item command="export-excel">
+                <el-icon><Download /></el-icon>
+                导出Excel
+              </el-dropdown-item>
+              <el-dropdown-item divided command="backup">
+                <el-icon><FolderAdd /></el-icon>
+                备份数据
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </div>
 
       <div class="filters">
@@ -206,13 +241,18 @@ import {
   View,
   Download,
   Edit,
-  Delete
+  Delete,
+  Upload,
+  RefreshRight,
+  ArrowDown,
+  FolderAdd
 } from '@element-plus/icons-vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useShortcuts, commonShortcuts } from '@/utils/shortcuts'
 import SmartTooltip from '@/components/Common/SmartTooltip.vue'
 import BatchActions from '@/components/Common/BatchActions.vue'
 import { useAuthStore } from '@/store/auth'
+import dataManager from '@/utils/dataManager'
 import type { TrainingMaterial, SearchFilters, PaginationParams } from '@/types/common'
 
 const router = useRouter()
@@ -246,67 +286,51 @@ const statusActions = ref([
   { label: '拒绝审批', value: 'rejected', icon: Delete }
 ])
 
-// 模拟培训资料数据
-const materials = ref<TrainingMaterial[]>([
-  {
-    id: 1,
-    title: '消防安全知识培训',
-    content: '包含消防安全基础知识、火灾预防、逃生技巧等重要内容。适用于全体员工的基础安全培训。',
-    filename: 'fire_safety_training.pdf',
-    fileSize: 2048000,
-    fileType: 'pdf',
-    topic: '消防安全',
-    duration: 4,
-    instructor: '张安全',
-    department: '安全科',
-    username: 'admin',
-    status: 'approved',
-    approvedBy: 'admin',
-    approvedAt: '2024-01-10T10:00:00Z',
-    downloadCount: 156,
-    viewCount: 234,
-    tags: ['消防', '安全', '基础培训'],
-    createdAt: '2024-01-08T09:00:00Z'
-  },
-  {
-    id: 2,
-    title: '工作安全规范操作指南',
-    content: '详细介绍各工种的安全操作规范，包括设备使用、防护措施、应急处理等内容。',
-    filename: 'work_safety_guide.pdf',
-    fileSize: 3072000,
-    fileType: 'pdf',
-    topic: '操作安全',
-    duration: 6,
-    instructor: '李规范',
-    department: '生产部',
-    username: 'user',
-    status: 'pending',
-    downloadCount: 89,
-    viewCount: 145,
-    tags: ['操作规范', '安全防护'],
-    createdAt: '2024-01-12T14:30:00Z'
-  },
-  {
-    id: 3,
-    title: '电气安全培训教程',
-    content: '电气设备安全使用、电击防护、电气火灾预防等专业内容。',
-    filename: 'electrical_safety.pptx',
-    fileSize: 5120000,
-    fileType: 'pptx',
-    topic: '电气安全',
-    duration: 8,
-    instructor: '王电工',
-    department: '技术部',
-    username: 'admin',
-    status: 'approved',
-    approvedBy: 'admin',
-    approvedAt: '2024-01-05T16:00:00Z',
-    downloadCount: 78,
-    viewCount: 112,
-    tags: ['电气安全', '专业培训'],
-    createdAt: '2024-01-02T11:15:00Z'
+// 培训资料数据
+const materials = ref<TrainingMaterial[]>([])
+
+// 加载数据
+const loadData = async () => {
+  await dataManager.init()
+  materials.value = dataManager.getTrainingMaterials()
+}
+
+// 数据操作函数
+const handleDataAction = async (command: string) => {
+  switch (command) {
+    case 'import':
+      await handleImportData()
+      break
+    case 'export-json':
+      await dataManager.exportData('training')
+      break
+    case 'export-excel':
+      await dataManager.exportToExcel('training')
+      break
+    case 'backup':
+      await dataManager.exportData('all')
+      break
   }
-])
+}
+
+// 导入数据
+const handleImportData = async () => {
+  const input = document.createElement('input')
+  input.type = 'file'
+  input.accept = '.json'
+  input.onchange = async (e) => {
+    const file = (e.target as HTMLInputElement).files?.[0]
+    if (file) {
+      try {
+        await dataManager.importData(file)
+        await loadData() // 重新加载数据
+      } catch (error) {
+        console.error('导入失败:', error)
+      }
+    }
+  }
+  input.click()
+}
 
 // 过滤后的资料
 const filteredMaterials = computed(() => {
@@ -444,8 +468,8 @@ const focusSearch = () => {
   searchInput.value?.focus()
 }
 
-const handleRefresh = () => {
-  // TODO: 重新加载数据
+const handleRefresh = async () => {
+  await loadData()
   ElMessage.success('数据已刷新')
 }
 
@@ -462,21 +486,75 @@ const clearSelection = () => {
   selectedTrainings.value = []
 }
 
-const handleBatchDelete = (items: TrainingMaterial[]) => {
-  ElMessage.success(`已删除 ${items.length} 个项目`)
-  selectedTrainings.value = []
-  // TODO: 实现实际删除逻辑
+const handleBatchDelete = async (items: TrainingMaterial[]) => {
+  try {
+    await ElMessageBox.confirm(
+      `确定要删除选中的 ${items.length} 个培训资料吗？此操作不可撤销。`,
+      '确认删除',
+      {
+        confirmButtonText: '删除',
+        cancelButtonText: '取消',
+        type: 'warning',
+        confirmButtonClass: 'el-button--danger'
+      }
+    )
+    
+    const deletedCount = dataManager.batchDeleteTrainingMaterials(items.map(item => item.id))
+    ElMessage.success(`已删除 ${deletedCount} 个培训资料`)
+    
+    // 重新加载数据并清空选择
+    await loadData()
+    selectedTrainings.value = []
+  } catch (error) {
+    // 用户取消删除
+  }
 }
 
-const handleBatchExport = (items: TrainingMaterial[]) => {
-  ElMessage.success(`正在导出 ${items.length} 个项目...`)
-  // TODO: 实现导出逻辑
+const handleBatchExport = async (items: TrainingMaterial[]) => {
+  try {
+    // 创建导出数据
+    const exportData = {
+      version: '1.0.0',
+      exportDate: new Date().toISOString(),
+      type: 'training-selection',
+      trainingMaterials: items
+    }
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `selected-training-materials-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    
+    ElMessage.success(`已导出 ${items.length} 个培训资料`)
+  } catch (error) {
+    ElMessage.error('导出失败')
+  }
 }
 
-const handleBatchStatusChange = (status: string, items: TrainingMaterial[]) => {
-  ElMessage.success(`已将 ${items.length} 个项目状态设为: ${getStatusText(status)}`)
-  selectedTrainings.value = []
-  // TODO: 实现状态更新逻辑
+const handleBatchStatusChange = async (status: string, items: TrainingMaterial[]) => {
+  try {
+    // 批量更新状态
+    for (const item of items) {
+      dataManager.updateTrainingMaterial(item.id, { 
+        status: status as any,
+        updatedAt: new Date().toISOString()
+      })
+    }
+    
+    ElMessage.success(`已将 ${items.length} 个项目状态设为: ${getStatusText(status)}`)
+    
+    // 重新加载数据并清空选择
+    await loadData()
+    selectedTrainings.value = []
+  } catch (error) {
+    ElMessage.error('状态更新失败')
+  }
 }
 
 // 注册快捷键
@@ -486,8 +564,9 @@ useShortcuts([
   commonShortcuts.refresh(handleRefresh)
 ])
 
-onMounted(() => {
-  // 初始化数据
+onMounted(async () => {
+  // 加载数据
+  await loadData()
 })
 </script>
 

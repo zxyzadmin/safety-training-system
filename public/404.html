@@ -39,17 +39,13 @@
     
     <!-- SPA 路由重定向脚本 -->
     <script>
-      // SPA 路由重定向，处理 GitHub Pages 的路由问题
-      (function(l) {
-        if (l.search[1] === '/' ) {
-          var decoded = l.search.slice(1).split('&').map(function(s) { 
-            return s.replace(/~and~/g, '&')
-          }).join('?')
-          window.history.replaceState(null, null,
-              l.pathname.slice(0, -1) + decoded + l.hash
-          )
-        }
-      }(window.location))
+      // GitHub Pages SPA 重定向处理
+      sessionStorage.redirect = location.href
+    </script>
+    
+    <!-- 立即重定向到主页 -->
+    <script>
+      window.location.replace('/safety-training-system/')
     </script>
   </head>
   <body>
