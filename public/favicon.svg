@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="#1e88e5">
+  <path d="M128 24l72 184h-144l72-184z" stroke="#1565c0" stroke-width="8" fill="#bbdefb" stroke-join="round"/>
+  <path d="M128 24v184" stroke="#1565c0" stroke-width="8" stroke-linecap="round" stroke-join="round"/>
+  <path d="M56 208c0 0 42.667-72 72-72 29.333 0 72 72 72 72" stroke="#1565c0" stroke-width="8" fill="none" stroke-linecap="round" stroke-join="round"/>
+  <text x="128" y="140" font-family="Arial" font-size="16" fill="#1565c0" text-anchor="middle">安全</text>
+</svg>

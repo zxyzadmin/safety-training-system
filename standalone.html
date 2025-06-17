@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>安全教育培训档案管理系统</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%231e88e5'%3E%3Cpath d='M128 24l72 184h-144l72-184z' stroke='%231565c0' stroke-width='8' fill='%23bbdefb' stroke-join='round'/%3E%3Cpath d='M128 24v184' stroke='%231565c0' stroke-width='8' stroke-linecap='round' stroke-join='round'/%3E%3Cpath d='M56 208c0 0 42.667-72 72-72 29.333 0 72 72 72 72' stroke='%231565c0' stroke-width='8' fill='none' stroke-linecap='round' stroke-join='round'/%3E%3Ctext x='128' y='140' font-family='Arial' font-size='16' fill='%231565c0' text-anchor='middle'%3E安全%3C/text%3E%3C/svg%3E">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+    <script src="https://unpkg.com/@element-plus/icons-vue/dist/index.iife.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+    <style>
+        :root {
+            --primary-color: #1e88e5;
+            --primary-dark: #1565c0;
+            --primary-light: #bbdefb;
+            --primary-lighter: #e3f2fd;
+            --accent-color: #ff9800;
+            --success-color: #4caf50;
+            --warning-color: #ff9800;
+            --danger-color: #f44336;
+            --info-color: #2196f3;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --text-disabled: #bdbdbd;
+            --text-white: #ffffff;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f5f7fa;
+            --bg-tertiary: #fafbfc;
+            --border-light: #e0e0e0;
+            --border-medium: #d0d0d0;
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+            --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --font-sm: 14px;
+            --font-md: 16px;
+            --font-lg: 18px;
+            --font-xl: 20px;
+            --font-2xl: 24px;
+            --font-3xl: 32px;
+            --font-normal: 400;
+            --font-medium: 500;
+            --font-semibold: 600;
+            --font-bold: 700;
+            --transition-fast: 0.15s ease;
+            --transition-normal: 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Microsoft YaHei', '微软雅黑', 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            min-height: 100vh;
+        }
+
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 1000px;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--bg-primary);
+            border-radius: 20px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 600px;
+        }
+
+        .login-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            filter: brightness(0) invert(1);
+        }
+
+        .system-title {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 10px;
+            line-height: 1.2;
+        }
+
+        .system-subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .login-form-wrapper {
+            padding: 60px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .demo-accounts {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .demo-accounts h4 {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+            text-align: center;
+        }
+
+        .demo-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color var(--transition-fast);
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .demo-item:hover {
+            background-color: var(--bg-secondary);
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-xl);
+        }
+
+        .welcome-banner {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: var(--spacing-xl);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--spacing-xl);
+            text-align: center;
+        }
+
+        .welcome-banner h1 {
+            font-size: var(--font-2xl);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .stat-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition-fast);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .stat-value {
+            font-size: var(--font-3xl);
+            font-weight: var(--font-bold);
+            color: var(--text-primary);
+        }
+
+        .stat-title {
+            font-size: var(--font-sm);
+            color: var(--text-secondary);
+            margin-top: var(--spacing-xs);
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .action-card {
+            background: var(--bg-primary);
+            border-radius: var(--radius-lg);
+            padding: var(--spacing-lg);
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .action-content h3 {
+            font-size: var(--font-lg);
+            margin-bottom: var(--spacing-xs);
+            color: var(--text-primary);
+        }
+
+        .action-content p {
+            font-size: var(--font-sm);
+            color: var(--text-secondary);
+        }
+
+        .footer {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-light);
+            margin-top: var(--spacing-xl);
+        }
+
+        @media (max-width: 768px) {
+            .login-card {
+                grid-template-columns: 1fr;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+
+            .login-header,
+            .login-form-wrapper {
+                padding: 40px 30px;
+            }
+
+            .system-title {
+                font-size: 24px;
+            }
+
+            .stats-grid,
+            .quick-actions {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border: 1px solid transparent;
+            border-radius: var(--radius-md);
+            font-size: var(--font-sm);
+            font-weight: var(--font-medium);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: var(--text-white);
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--primary-lighter);
+        }
+
+        .hide { display: none; }
+        .show { display: block; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div class="app-container">
+            <!-- 登录页面 -->
+            <div v-if="!isLoggedIn" class="login-container">
+                <div class="login-content">
+                    <div class="login-card">
+                        <div class="login-header">
+                            <svg class="logo" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="#ffffff">
+                                <path d="M128 24l72 184h-144l72-184z" stroke="currentColor" stroke-width="8" fill="none" stroke-join="round"/>
+                                <path d="M128 24v184" stroke="currentColor" stroke-width="8" stroke-linecap="round" stroke-join="round"/>
+                                <path d="M56 208c0 0 42.667-72 72-72 29.333 0 72 72 72 72" stroke="currentColor" stroke-width="8" fill="none" stroke-linecap="round" stroke-join="round"/>
+                                <text x="128" y="140" font-family="Arial" font-size="16" fill="currentColor" text-anchor="middle">安全</text>
+                            </svg>
+                            <h1 class="system-title">安全教育培训档案管理系统</h1>
+                            <p class="system-subtitle">Safety Training & Archive Management System</p>
+                        </div>
+
+                        <div class="login-form-wrapper">
+                            <h2 class="form-title">用户登录</h2>
+                            
+                            <el-form @submit.prevent="handleLogin" size="large">
+                                <el-form-item>
+                                    <el-input
+                                        v-model="loginForm.username"
+                                        placeholder="请输入用户名"
+                                        :prefix-icon="User"
+                                        clearable
+                                    />
+                                </el-form-item>
+
+                                <el-form-item>
+                                    <el-input
+                                        v-model="loginForm.password"
+                                        type="password"
+                                        placeholder="请输入密码"
+                                        :prefix-icon="Lock"
+                                        show-password
+                                        clearable
+                                        @keyup.enter="handleLogin"
+                                    />
+                                </el-form-item>
+
+                                <el-form-item>
+                                    <el-button
+                                        type="primary"
+                                        :loading="isLoading"
+                                        @click="handleLogin"
+                                        style="width: 100%; height: 48px; font-size: 16px;"
+                                    >
+                                        {{ isLoading ? '登录中...' : '登录' }}
+                                    </el-button>
+                                </el-form-item>
+                            </el-form>
+
+                            <div class="demo-accounts">
+                                <h4>帮助信息</h4>
+                                <div class="demo-item" @click="showContactInfo">
+                                    <el-tag type="info">忘记密码</el-tag>
+                                    <span>联系系统管理员重置</span>
+                                </div>
+                                <div class="demo-item" @click="showUserGuide">
+                                    <el-tag type="success">使用指南</el-tag>
+                                    <span>查看系统使用帮助</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主应用界面 -->
+            <div v-else class="main-container">
+                <!-- 欢迎横幅 -->
+                <div class="welcome-banner">
+                    <h1>欢迎回来，{{ currentUser.name }}</h1>
+                    <p>今天是 {{ currentDate }}，祝您工作愉快！</p>
+                    <div style="margin-top: 20px;">
+                        <el-button @click="logout" type="primary" plain>
+                            <el-icon><SwitchButton /></el-icon>
+                            退出登录
+                        </el-button>
+                    </div>
+                </div>
+
+                <!-- 统计卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">156</div>
+                                <div class="stat-title">培训资料总数</div>
+                            </div>
+                            <div class="stat-icon" style="background-color: #409eff;">
+                                <el-icon><Document /></el-icon>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">1,234</div>
+                                <div class="stat-title">参与人数</div>
+                            </div>
+                            <div class="stat-icon" style="background-color: #67c23a;">
+                                <el-icon><User /></el-icon>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">45</div>
+                                <div class="stat-title">本月新增</div>
+                            </div>
+                            <div class="stat-icon" style="background-color: #e6a23c;">
+                                <el-icon><Upload /></el-icon>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <div>
+                                <div class="stat-value">89%</div>
+                                <div class="stat-title">完成率</div>
+                            </div>
+                            <div class="stat-icon" style="background-color: #f56c6c;">
+                                <el-icon><TrendCharts /></el-icon>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 快速操作 -->
+                <div class="quick-actions">
+                    <div class="action-card" @click="showMessage('上传培训资料功能')">
+                        <div class="action-icon" style="background-color: #409eff;">
+                            <el-icon><Upload /></el-icon>
+                        </div>
+                        <div class="action-content">
+                            <h3>上传培训资料</h3>
+                            <p>快速上传新的培训文档和材料</p>
+                        </div>
+                    </div>
+
+                    <div class="action-card" @click="showMessage('查看培训资料功能')">
+                        <div class="action-icon" style="background-color: #67c23a;">
+                            <el-icon><Document /></el-icon>
+                        </div>
+                        <div class="action-content">
+                            <h3>查看培训资料</h3>
+                            <p>浏览所有可用的培训资料</p>
+                        </div>
+                    </div>
+
+                    <div class="action-card" @click="showMessage('档案管理功能')">
+                        <div class="action-icon" style="background-color: #e6a23c;">
+                            <el-icon><Folder /></el-icon>
+                        </div>
+                        <div class="action-content">
+                            <h3>档案管理</h3>
+                            <p>管理和维护培训档案</p>
+                        </div>
+                    </div>
+
+                    <div class="action-card" @click="showMessage('统计分析功能')">
+                        <div class="action-icon" style="background-color: #f56c6c;">
+                            <el-icon><TrendCharts /></el-icon>
+                        </div>
+                        <div class="action-content">
+                            <h3>统计分析</h3>
+                            <p>查看详细的数据分析报告</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 页脚 -->
+                <div class="footer">
+                    <p>&copy; 2024 安全教育培训档案管理系统 v2.0</p>
+                    <p>作者：郭学凡 | 专业的企业安全培训管理平台</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, onMounted } = Vue;
+        const { ElMessage } = ElementPlus;
+
+        // 图标
+        const icons = ElementPlusIconsVue;
+
+        createApp({
+            setup() {
+                // 响应式数据
+                const isLoggedIn = ref(false);
+                const isLoading = ref(false);
+                const currentUser = ref({ name: '', role: '' });
+                
+                const loginForm = ref({
+                    username: '',
+                    password: ''
+                });
+
+                // 当前日期
+                const currentDate = computed(() => {
+                    return new Date().toLocaleDateString('zh-CN', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        weekday: 'long'
+                    });
+                });
+
+                // 用户数据
+                const users = [
+                    { username: 'admin', password: 'admin123', name: '系统管理员', role: 'admin' },
+                    { username: 'user', password: 'user123', name: '普通用户', role: 'user' }
+                ];
+
+                // 登录处理
+                const handleLogin = async () => {
+                    if (!loginForm.value.username || !loginForm.value.password) {
+                        ElMessage.error('请输入用户名和密码');
+                        return;
+                    }
+
+                    isLoading.value = true;
+                    
+                    // 模拟网络延迟
+                    setTimeout(() => {
+                        const user = users.find(u => 
+                            u.username === loginForm.value.username && 
+                            u.password === loginForm.value.password
+                        );
+
+                        if (user) {
+                            currentUser.value = user;
+                            isLoggedIn.value = true;
+                            ElMessage.success(`欢迎回来，${user.name}！`);
+                            
+                            // 保存登录状态
+                            localStorage.setItem('currentUser', JSON.stringify(user));
+                        } else {
+                            ElMessage.error('用户名或密码错误');
+                        }
+                        
+                        isLoading.value = false;
+                    }, 1000);
+                };
+
+                // 显示联系信息
+                const showContactInfo = () => {
+                    ElMessage.info('请联系系统管理员重置密码\n联系方式：admin@company.com\n电话：400-xxx-xxxx');
+                };
+
+                // 显示使用指南
+                const showUserGuide = () => {
+                    ElMessage.info('使用指南：\n1. 输入用户名和密码登录\n2. 系统支持培训管理、档案管理等功能\n3. 如需帮助请联系技术支持');
+                };
+
+                // 退出登录
+                const logout = () => {
+                    isLoggedIn.value = false;
+                    currentUser.value = { name: '', role: '' };
+                    loginForm.value = { username: '', password: '' };
+                    localStorage.removeItem('currentUser');
+                    ElMessage.success('已安全退出');
+                };
+
+                // 显示消息
+                const showMessage = (feature) => {
+                    ElMessage.info(`${feature}正在开发中，敬请期待！`);
+                };
+
+                // 初始化
+                onMounted(() => {
+                    // 检查是否有保存的登录状态
+                    const savedUser = localStorage.getItem('currentUser');
+                    if (savedUser) {
+                        try {
+                            currentUser.value = JSON.parse(savedUser);
+                            isLoggedIn.value = true;
+                        } catch (error) {
+                            console.error('解析用户信息失败:', error);
+                            localStorage.removeItem('currentUser');
+                        }
+                    }
+                });
+
+                return {
+                    isLoggedIn,
+                    isLoading,
+                    currentUser,
+                    loginForm,
+                    currentDate,
+                    handleLogin,
+                    showContactInfo,
+                    showUserGuide,
+                    logout,
+                    showMessage,
+                    // 图标
+                    ...icons
+                };
+            }
+        }).use(ElementPlus).mount('#app');
+    </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+:root {
+  /* 主色调 */
+  --primary-color: #1e88e5;
+  --primary-dark: #1565c0;
+  --primary-light: #bbdefb;
+  --primary-lighter: #e3f2fd;
+  
+  /* 强调色 */
+  --accent-color: #ff9800;
+  --accent-dark: #f57c00;
+  --accent-light: #ffcc02;
+  
+  /* 语义色彩 */
+  --success-color: #4caf50;
+  --warning-color: #ff9800;
+  --danger-color: #f44336;
+  --info-color: #2196f3;
+  
+  /* 文字颜色 */
+  --text-primary: #212121;
+  --text-secondary: #757575;
+  --text-disabled: #bdbdbd;
+  --text-white: #ffffff;
+  
+  /* 背景色 */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f5f7fa;
+  --bg-tertiary: #fafbfc;
+  --bg-overlay: rgba(0, 0, 0, 0.6);
+  
+  /* 边框色 */
+  --border-light: #e0e0e0;
+  --border-medium: #d0d0d0;
+  --border-dark: #bdbdbd;
+  
+  /* 阴影 */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.18);
+  
+  /* 圆角 */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 50%;
+  
+  /* 间距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-2xl: 48px;
+  
+  /* 字体大小 */
+  --font-xs: 12px;
+  --font-sm: 14px;
+  --font-md: 16px;
+  --font-lg: 18px;
+  --font-xl: 20px;
+  --font-2xl: 24px;
+  --font-3xl: 32px;
+  
+  /* 字体粗细 */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* 过渡动画 */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+  
+  /* Z轴层级 */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-popover: 1060;
+  --z-tooltip: 1070;
+  
+  /* 布局 */
+  --header-height: 64px;
+  --sidebar-width: 260px;
+  --sidebar-collapsed-width: 64px;
+  --container-max-width: 1200px;
+}
+
+/* 深色主题变量 */
+html.dark {
+  --text-primary: #ffffff;
+  --text-secondary: #b3b3b3;
+  --text-disabled: #666666;
+  
+  --bg-primary: #1a1a1a;
+  --bg-secondary: #242424;
+  --bg-tertiary: #2e2e2e;
+  --bg-overlay: rgba(0, 0, 0, 0.8);
+  
+  --border-light: #404040;
+  --border-medium: #505050;
+  --border-dark: #606060;
+  
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.45);
+}
