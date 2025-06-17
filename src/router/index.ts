@@ -93,7 +93,7 @@ const routes: RouteRecordRaw[] = [
 ]
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHistory('/safety-training-system/'),
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) {
