@@ -129,7 +129,7 @@
             <el-button
               type="text"
               @click="showAdvancedSearch = !showAdvancedSearch"
-              :icon="showAdvancedSearch ? CaretUp : CaretDown"
+              :icon="showAdvancedSearch ? ArrowUp : ArrowDown"
             >
               {{ showAdvancedSearch ? '收起' : '高级搜索' }}
             </el-button>
@@ -199,7 +199,7 @@
             
             <el-dropdown @command="handleSort">
               <el-button size="small" :icon="Sort">
-                排序 <el-icon><arrow-down /></el-icon>
+                排序 <el-icon><ArrowDown /></el-icon>
               </el-button>
               <template #dropdown>
                 <el-dropdown-menu>
@@ -424,14 +424,13 @@ import {
   Grid,
   List,
   Sort,
-  CaretUp,
-  CaretDown,
+  ArrowUp,
+  ArrowDown,
   MoreFilled,
   FolderOpened,
   Calendar,
   User,
-  Files,
-  ArrowDown
+  Files
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
