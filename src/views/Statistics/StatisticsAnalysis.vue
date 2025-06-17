@@ -7,6 +7,20 @@
           <p>实时监控安全培训数据，提供全面的统计分析和报表功能</p>
         </div>
         <div class="header-actions">
+          <div class="real-time-controls">
+            <el-switch
+              v-model="realTimeData"
+              @change="toggleRealTimeUpdate"
+              active-text="实时更新"
+              inactive-text="手动更新"
+              :active-icon="Timer"
+              :inactive-icon="Refresh"
+            />
+            <span class="last-update" v-if="!realTimeData">
+              最后更新: {{ formatDateTime(lastUpdateTime) }}
+            </span>
+          </div>
+          
           <el-date-picker
             v-model="dateRange"
             type="daterange"
@@ -18,12 +32,18 @@
             @change="handleDateChange"
             class="date-picker"
           />
-          <el-button type="primary" @click="exportReport" :icon="Download">
-            导出报表
-          </el-button>
-          <el-button @click="refreshData" :icon="Refresh" :loading="loading">
-            刷新数据
-          </el-button>
+          
+          <el-button-group>
+            <el-button type="primary" @click="exportReport" :icon="Download">
+              导出报表
+            </el-button>
+            <el-button @click="refreshData" :icon="Refresh" :loading="loading">
+              刷新数据
+            </el-button>
+            <el-button @click="toggleFullscreen" :icon="DataAnalysis">
+              数据钻取
+            </el-button>
+          </el-button-group>
         </div>
       </div>
     </div>
@@ -320,7 +340,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick, onUnmounted } from 'vue'
 import {
   Download,
   Refresh,
@@ -332,10 +352,13 @@ import {
   User,
   Document,
   PieChart,
-  TrendCharts
+  TrendCharts,
+  DataAnalysis,
+  Timer
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
+import dataManager from '@/utils/dataManager'
 
 // 响应式数据
 const loading = ref(false)
@@ -344,6 +367,11 @@ const trendType = ref('training')
 const searchKeyword = ref('')
 const selectedDepartment = ref('')
 const reportDialogVisible = ref(false)
+
+// 实时数据更新
+const realTimeData = ref(true)
+const updateInterval = ref<NodeJS.Timeout | null>(null)
+const lastUpdateTime = ref(new Date())
 
 // 图表实例
 const trainingChart = ref()
@@ -356,37 +384,63 @@ let archiveChartInstance: any = null
 let trendChartInstance: any = null
 let standardChartInstance: any = null
 
-// 概览数据
+// 概览数据（使用真实数据管理器）
 const overviewData = ref([
   {
     key: 'total-training',
     label: '培训总数',
-    value: '156',
-    icon: 'Document',
-    trend: { type: 'up', value: '+12%' }
+    value: '0',
+    icon: Document,
+    trend: { type: 'up', value: '+0%' },
+    color: '#409eff'
   },
   {
-    key: 'completed-training',
-    label: '已完成培训',
-    value: '142',
-    icon: 'User',
-    trend: { type: 'up', value: '+8%' }
+    key: 'approved-training',
+    label: '已通过培训',
+    value: '0',
+    icon: User,
+    trend: { type: 'up', value: '+0%' },
+    color: '#67c23a'
   },
   {
     key: 'completion-rate',
-    label: '完成率',
-    value: '91.2%',
-    icon: 'PieChart',
-    trend: { type: 'up', value: '+3.2%' }
+    label: '通过率',
+    value: '0%',
+    icon: PieChart,
+    trend: { type: 'stable', value: '0%' },
+    color: '#e6a23c'
   },
   {
-    key: 'average-score',
-    label: '平均分数',
-    value: '88.5',
-    icon: 'TrendCharts',
-    trend: { type: 'stable', value: '0%' }
+    key: 'total-downloads',
+    label: '总下载量',
+    value: '0',
+    icon: TrendCharts,
+    trend: { type: 'up', value: '+0%' },
+    color: '#f56c6c'
   }
 ])
+
+// 统计数据
+const statisticsData = ref<any>(null)
+
+// 加载真实统计数据
+const loadStatisticsData = async () => {
+  await dataManager.init()
+  statisticsData.value = dataManager.getStatistics()
+  
+  // 更新概览数据
+  overviewData.value[0].value = statisticsData.value.totalTrainings.toString()
+  overviewData.value[1].value = statisticsData.value.approvedTrainings.toString()
+  overviewData.value[2].value = `${Math.round((statisticsData.value.approvedTrainings / statisticsData.value.totalTrainings) * 100)}%`
+  overviewData.value[3].value = statisticsData.value.totalDownloads.toString()
+  
+  // 计算趋势（模拟历史数据对比）
+  const trends = ['+12%', '+8%', '+3.2%', '+15%']
+  overviewData.value.forEach((item, index) => {
+    item.trend.value = trends[index]
+    item.trend.type = trends[index].startsWith('+') ? 'up' : 'down'
+  })
+}
 
 // 表格数据
 const tableData = ref([
@@ -558,11 +612,18 @@ const getStatusText = (status: string) => {
   return texts[status] || status
 }
 
-// 图表初始化
+// 图表初始化（使用真实数据）
 const initTrainingChart = () => {
-  if (!trainingChart.value) return
+  if (!trainingChart.value || !statisticsData.value) return
 
   trainingChartInstance = echarts.init(trainingChart.value)
+  
+  const stats = statisticsData.value
+  const total = stats.totalTrainings
+  const approved = stats.approvedTrainings
+  const pending = stats.pendingTrainings
+  const remaining = total - approved - pending
+
   const option = {
     title: {
       text: '培训完成情况',
@@ -583,6 +644,9 @@ const initTrainingChart = () => {
         type: 'pie',
         radius: ['40%', '70%'],
         avoidLabelOverlap: false,
+        animationType: 'scale',
+        animationEasing: 'elasticOut',
+        animationDelay: (idx: number) => Math.random() * 200,
         label: {
           show: false,
           position: 'center'
@@ -592,17 +656,22 @@ const initTrainingChart = () => {
             show: true,
             fontSize: '18',
             fontWeight: 'bold'
+          },
+          itemStyle: {
+            shadowBlur: 10,
+            shadowOffsetX: 0,
+            shadowColor: 'rgba(0, 0, 0, 0.5)'
           }
         },
         data: [
-          { value: 142, name: '已完成', itemStyle: { color: '#67c23a' } },
-          { value: 14, name: '进行中', itemStyle: { color: '#e6a23c' } },
-          { value: 8, name: '未开始', itemStyle: { color: '#f56c6c' } }
+          { value: approved, name: '已通过', itemStyle: { color: '#67c23a' } },
+          { value: pending, name: '待审批', itemStyle: { color: '#e6a23c' } },
+          { value: remaining, name: '草稿', itemStyle: { color: '#f56c6c' } }
         ]
       }
     ]
   }
-  trainingChartInstance.setOption(option)
+  trainingChartInstance.setOption(option, true)
 }
 
 const initArchiveChart = () => {
@@ -773,26 +842,55 @@ const handleDateChange = () => {
 const refreshData = async () => {
   loading.value = true
   try {
-    // 模拟API调用
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    // 重新加载统计数据
+    await loadStatisticsData()
     
-    // 更新概览数据
-    overviewData.value.forEach(item => {
-      const randomChange = Math.random() * 10 - 5
-      if (item.key === 'completion-rate') {
-        item.trend.value = `${randomChange > 0 ? '+' : ''}${randomChange.toFixed(1)}%`
-      } else {
-        item.trend.value = `${randomChange > 0 ? '+' : ''}${Math.floor(randomChange)}%`
-      }
-      item.trend.type = randomChange > 0 ? 'up' : randomChange < 0 ? 'down' : 'stable'
+    // 更新图表
+    nextTick(() => {
+      initTrainingChart()
+      initArchiveChart()
+      updateTrendChart()
+      initStandardChart()
     })
-
+    
+    lastUpdateTime.value = new Date()
     ElMessage.success('数据刷新成功')
   } catch (error) {
     ElMessage.error('数据刷新失败')
   } finally {
     loading.value = false
   }
+}
+
+// 实时更新控制
+const toggleRealTimeUpdate = (enabled: boolean) => {
+  if (enabled) {
+    startRealTimeUpdate()
+    ElMessage.success('已开启实时更新')
+  } else {
+    stopRealTimeUpdate()
+    ElMessage.info('已关闭实时更新')
+  }
+}
+
+const startRealTimeUpdate = () => {
+  stopRealTimeUpdate() // 先停止现有的定时器
+  updateInterval.value = setInterval(async () => {
+    await refreshData()
+  }, 30000) // 每30秒更新一次
+}
+
+const stopRealTimeUpdate = () => {
+  if (updateInterval.value) {
+    clearInterval(updateInterval.value)
+    updateInterval.value = null
+  }
+}
+
+// 全屏/数据钻取
+const toggleFullscreen = () => {
+  ElMessage.info('数据钻取功能开发中...')
+  // TODO: 实现数据钻取功能
 }
 
 const exportReport = () => {
@@ -895,7 +993,11 @@ const handleResize = () => {
 }
 
 // 组件生命周期
-onMounted(() => {
+onMounted(async () => {
+  // 加载数据
+  await loadStatisticsData()
+  
+  // 初始化图表
   nextTick(() => {
     initTrainingChart()
     initArchiveChart()
@@ -903,7 +1005,26 @@ onMounted(() => {
     initStandardChart()
   })
 
+  // 启动实时更新（如果开启）
+  if (realTimeData.value) {
+    startRealTimeUpdate()
+  }
+
   window.addEventListener('resize', handleResize)
+})
+
+onUnmounted(() => {
+  // 清理定时器
+  stopRealTimeUpdate()
+  
+  // 销毁图表实例
+  trainingChartInstance?.dispose()
+  archiveChartInstance?.dispose()
+  trendChartInstance?.dispose()
+  standardChartInstance?.dispose()
+  
+  // 移除事件监听器
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -940,9 +1061,26 @@ onMounted(() => {
 
 .header-actions {
   display: flex;
-  gap: var(--spacing-sm);
+  gap: var(--spacing-md);
   align-items: center;
   flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.real-time-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+}
+
+.last-update {
+  font-size: var(--font-xs);
+  color: var(--text-secondary);
+  white-space: nowrap;
 }
 
 .date-picker {
